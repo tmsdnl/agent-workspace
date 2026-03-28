@@ -1,0 +1,11 @@
+# Workspace sub-repositories are their own git repositories.
+# Add entries here as you clone sub-repos, e.g. /docs/ /my-service/
+
+# Local workspace noise.
+/.DS_Store
+/.claude/
+/CLAUDE.md
+
+# Workspace control files
+!/.root
+!/AGENTS.md
