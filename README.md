@@ -95,3 +95,14 @@ Each sub-project is a related, independent git repository inside the workspace d
 
 Agent instructions direct coding agents to the workspace root, where the root `AGENTS.md` maps the full project structure — listing all sub-projects and pointing agents to sibling instructions and the knowledge base. They can also carry project-specific instructions.
 
+## Windows (manual setup)
+
+`make` and symlinks are not available without WSL. Replicate `make setup` by hand:
+
+**Agent instructions** — for each sub-project, copy `.agents-md/<name>.md` into the repo as `CLAUDE.md` (Claude Code) and `AGENTS.md` (Codex), or use `.agents-md/template.md` as a starting point if no file exists yet. Windows shortcuts are not followed by file-reading tools and do not work as symlink replacements.
+
+When `.agents-md/<name>.md` changes, update the copies in each repo manually.
+
+**Skills (optional)** — to install globally, copy each folder from `.agents/skills/` into:
+- `%USERPROFILE%\.claude\skills\` (Claude Code)
+- `%USERPROFILE%\.agents\skills\` (Codex)

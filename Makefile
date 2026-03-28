@@ -1,4 +1,4 @@
-SHELL := /bin/zsh
+SHELL := $(shell which zsh 2>/dev/null || which bash)
 
 .DEFAULT_GOAL := help
 
@@ -8,6 +8,7 @@ SKILLS_SRC        := $(CURDIR)/.agents/skills
 
 VALID_AGENTS  := claude codex all
 ALL_SKILLS    := $(sort $(filter-out .gitkeep,$(notdir $(wildcard $(SKILLS_SRC)/*))))
+AGENTS_MD_SRC := $(filter-out .agents-md/template.md,$(wildcard .agents-md/*.md))
 
 SKILL_COMMANDS    := install update list status prune uninstall
 SKILLS_CMD        := $(word 2,$(MAKECMDGOALS))
@@ -69,9 +70,10 @@ help:
 setup: agents-md
 	@mkdir -p .claude
 	@ln -sfn ../.agents/skills .claude/skills
+	@[ -e CLAUDE.md ] || ln -sfn AGENTS.md CLAUDE.md
 
 agents-md:
-	@for f in .agents-md/*.md; do \
+	@for f in $(AGENTS_MD_SRC); do \
 		repo=$${f##*/}; repo=$${repo%.md}; \
 		if [ -d "$$repo" ]; then \
 			ln -sfn ../$$f $$repo/AGENTS.md; \
@@ -113,6 +115,7 @@ skills-install skills-update:
 		done; \
 		echo "installed: $(CLAUDE_SKILLS_DST) ($${skills[*]})"; \
 	elif [ ! -e "$(CLAUDE_SKILLS_DST)" ]; then \
+		mkdir -p "$(dir $(CLAUDE_SKILLS_DST))"; \
 		ln -sfn "$(AGENTS_SKILLS_DST)" "$(CLAUDE_SKILLS_DST)"; \
 		echo "linked: $(CLAUDE_SKILLS_DST) -> $(AGENTS_SKILLS_DST)"; \
 	fi
@@ -175,7 +178,7 @@ skills-prune:
 		esac; \
 		[ -d "$$dst_root" ] || continue; pruned=0; \
 		for dir in "$$dst_root"/*; do \
-			[ -d "$$dir" ] || continue; name=$${dir:t}; \
+			[ -d "$$dir" ] || continue; name=$${dir##*/}; \
 			if [[ ! " $(ALL_SKILLS) " == *" $$name "* ]]; then \
 				rm -rf "$$dir"; echo "pruned $$agent: $$name"; pruned=1; \
 			fi; \
