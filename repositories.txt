@@ -1,0 +1,5 @@
+# One workspace-relative path|url entry per line.
+# Blank lines and comments are ignored.
+#
+# service|https://git.example.com/org/service.git
+# platform/api|https://git.example.com/org/platform-api.git

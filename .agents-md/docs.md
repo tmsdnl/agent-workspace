@@ -1,20 +1,25 @@
 # Knowledge Base
 
-## Layers
+Read workspace root `AGENTS.md` first: `../AGENTS.md`.
 
-- **`notes/`** — Timestamped, atomic observations. Append-only; a note may be deleted only once all its claims are fully captured elsewhere and it no longer serves as a citation target.
-- **`decisions/`** — Consolidated records by topic (ADRs). Mutable — sections are added and updated as decisions evolve.
-- **`ideas/`** — Forward-looking proposals not yet decided. Lifecycle: `open` → `accepted`, `rejected`, or `superseded`.
+## Where To Look
+
+- Search `decisions/` first for current, consolidated guidance on a topic.
+- Search `notes/` next for atomic findings, evidence, and implementation details. Skip notes marked superseded.
+- Search `ideas/` for proposals that are still open or were later accepted, rejected, or superseded.
 
 ## Rules
 
 - **Notes first.** Write the note before recording a decision.
+- **Notes are append-only.** Delete a note only after all of its claims are captured elsewhere and it no longer needs to be cited.
 - **Decisions are not history.** They describe what is, not what was. History lives in notes.
 - **Ideas are not decisions.** Keep speculative content out of `decisions/` until settled.
 - **One concept per section.** Each section covers one decision point.
 - **Cite everything.** Every decision section must link to the note(s) and idea(s), if any, that informed it.
 - **Supersede explicitly.** When a note is superseded, add `> **Superseded — see [link].**` below its title and set `status: superseded` in frontmatter.
 - **Skip superseded.** When scanning `notes/`, skip any file with a `Superseded` blockquote below its title.
+- **Promote resolved guidance.** When notes or ideas resolve into guidance, update the relevant decision section and cite sources.
+- **Close the loop on ideas.** When an idea is accepted, rejected, or superseded, update its `## Outcome`.
 
 ## Note Format
 
@@ -77,21 +82,6 @@ Decision section:
 - Required: `---`
 
 Append `*(Deferred)*` to the `##` heading when the decision is planned but not yet implemented.
-
-## Workflow
-
-- Capture new facts and findings as notes first.
-- Capture speculative proposals as ideas.
-- When notes or ideas resolve into guidance, create or update the relevant decision section and cite sources.
-- When an idea is accepted, rejected, or superseded, update its `## Outcome`.
-
-## Skills
-
-- Use the `note` skill to create a new note in `notes/`.
-- Use the `idea` skill to create a new proposal in `ideas/`.
-- Use the `adr` skill to synthesize or update `decisions/` from notes and ideas.
-- The `adr` skill proposes changes first and waits for explicit approval before editing.
-- If skills are unavailable, follow the format rules above manually.
 
 ## Tags
 

@@ -1,6 +1,21 @@
 # Agent Workspace
 
-A template for organising related git repositories under a shared root, with a shared knowledge base, parallel multi-agent support, and skills.
+A workspace template that groups related git repos under a shared knowledge base and shared AI agent instructions.
+
+- Knowledge (notes, decisions, architecture) lives in one place (`docs/`) instead of scattered across repos or lost outside the project
+- AI coding agents (Claude Code, Codex, etc.) get the same context regardless of which repo they're working in
+
+```
+workspace/
+  AGENTS.md              ← shared agent instructions
+  docs/                  ← knowledge base (notes, decisions, ideas)
+  Makefile               ← setup and repo cloning
+  repositories.txt       ← clone manifest
+  service-a/             ← independent git repo
+  platform/api/          ← nested independent git repo
+```
+
+Each sub-project is an independent git repository with its own history. The workspace itself should be a private repository — sub-projects inside it can be public.
 
 ## Setup
 
@@ -17,42 +32,56 @@ project_root_markers = [".root", ".git"]
 ```
 git clone <this-template> my-workspace
 cd my-workspace
+```
+
+If you want the workspace to clone repositories for you, add `path|url` entries to `repositories.txt` and run:
+
+```
+make clone
+```
+
+Then create agent instructions:
+
+```
 make setup
 ```
 
-`make setup` creates `AGENTS.md` and `CLAUDE.md` symlinks in each sub-project — referred to throughout as **agent instructions**. These allow coding agents to locate the workspace root and access the shared knowledge base.
+`make setup` creates a root `CLAUDE.md` shim to `AGENTS.md` and symlinks `AGENTS.md` and `CLAUDE.md` into each registered sub-project. Those symlinks point agents to the workspace root instructions and the shared knowledge base. Re-run `make agents-md` after adding or cloning sub-projects.
 
-## Motivation
+## Knowledge Base
 
-The primary goal is a **shared knowledge base** across related project repositories — for gathering context, analysing codebases, making decisions, driving architecture, and coordinating work without scattering that knowledge across individual project histories or outside the project entirely.
+`docs/` is the workspace knowledge base. Its authoring conventions are defined in `.agents-md/docs.md` and exposed via agent instructions after `make setup`.
 
-A secondary benefit is running multiple agents in parallel on different tasks. Agent instructions give Claude Code, Codex, and others shared access to the same instructions and knowledge base — so each agent stays in context regardless of which task or repo it is working in.
+By default the knowledge base is committed as part of this workspace repo. It can also be maintained as an independent git repository at `docs/`; if you split it out, add `/docs/` to the workspace `.gitignore` and keep `.agents-md/docs.md` as the instruction source used to generate `docs/AGENTS.md`.
 
-The workspace should be a private git repository. Each subdirectory is an independent git repository, so their histories stay independent. Sub-projects can be public while the workspace stays private.
+## Adding a Sub-Project
+
+1. Add a `path|url` entry to `repositories.txt` and run `make clone`
+2. Add `/<path>/` to `.gitignore`
+3. Copy `.agents-md/template.md` to `.agents-md/<path-with-/-replaced-by-__>.md` and fill it in
+4. Register the sub-project in the root `AGENTS.md` under **Project Structure**
+5. Run `make agents-md` to generate agent instructions for the sub-project
+
+`repositories.txt` format:
 
 ```
-workspace/
-  .root                     ← marks the workspace root (used by Codex)
-  .agents-md/               ← agent instructions, one file per git repository
-  .agents/skills/           ← agent skills source
-  .gitignore
-  AGENTS.md
-  Makefile
-  docs/                     ← knowledge base
-  workspace-repo-1/         ← example sub-projects
-  workspace-repo-2/
-  ...
+path/to/repository|https://git.example.com/org/repository.git
 ```
 
-### Typical Workflows
+- Paths must be workspace-relative; nested paths are allowed
+- Blank lines and `#` comments are ignored
+- Existing cloned repositories are skipped automatically
+- `.agents-md` filenames encode `/` as `__`
+
+## Workflows
 
 **Day-to-day development:**
-1. Record ideas and notes using skills
+1. Record ideas and notes in `docs/` (manually or with tools that follow the same format)
 2. Feed into context or planning mode
 3. Execute; capture findings as notes
 4. Repeat
 
-**Analysing a large or complex codebase:**
+**Analysing a codebase:**
 1. Prompt agents to analyse architecture, design, and wiring
 2. Capture findings as notes
 3. Feed into context or planning mode
@@ -60,49 +89,4 @@ workspace/
 
 The knowledge base evolves as the project grows. Older documents can be compacted, archived, or deleted as they become irrelevant.
 
-## Knowledge Base
-
-`docs/` is the workspace knowledge base. Its authoring conventions are defined in `.agents-md/docs.md` and exposed via agent instructions after `make setup`.
-
-By default the knowledge base is committed as part of this workspace repo. It can also be maintained as an independent git repository — see `docs/DELETEME.md`.
-
-## Skills
-
-Skills in `.agents/skills/` are available to Codex (via `.agents/skills/` discovery) and to Claude Code via a local `.claude/skills` symlink created by `make setup`. To install them globally:
-
-```
-make skills install
-```
-
-See `make help` for the full skills lifecycle (`list`, `status`, `prune`, `uninstall`).
-
-> **Note:** `make skills install` creates `~/.claude/skills` as a symlink to `~/.agents/skills` if it does not exist. If `~/.claude/skills` is already a directory, skills are copied into it without overwriting newer files.
-
-## Adding a Sub-Project
-
-Each sub-project is a related, independent git repository inside the workspace directory.
-
-1. Clone or initialise the sub-project:
-   ```
-   git clone <url> <name>
-   # or
-   git init <name>
-   ```
-2. Add `/<name>/` to `.gitignore`
-3. Copy `.agents-md/template.md` → `.agents-md/<name>.md` and fill it in
-4. Register the sub-project in the root `AGENTS.md` under **Sub-Projects**
-5. Run `make agents-md` to generate agent instructions for the sub-project
-
-Agent instructions direct coding agents to the workspace root, where the root `AGENTS.md` maps the full project structure — listing all sub-projects and pointing agents to sibling instructions and the knowledge base. They can also carry project-specific instructions.
-
-## Windows (manual setup)
-
-`make` and symlinks are not available without WSL. Replicate `make setup` by hand:
-
-**Agent instructions** — for each sub-project, copy `.agents-md/<name>.md` into the repo as `CLAUDE.md` (Claude Code) and `AGENTS.md` (Codex), or use `.agents-md/template.md` as a starting point if no file exists yet. Windows shortcuts are not followed by file-reading tools and do not work as symlink replacements.
-
-When `.agents-md/<name>.md` changes, update the copies in each repo manually.
-
-**Skills (optional)** — to install globally, copy each folder from `.agents/skills/` into:
-- `%USERPROFILE%\.claude\skills\` (Claude Code)
-- `%USERPROFILE%\.agents\skills\` (Codex)
+This template ships no bundled skills. If you use external or globally installed tools, they should produce notes, ideas, and decisions that follow the formats in `.agents-md/docs.md`.

@@ -1,9 +1,0 @@
-interface:
-  display_name: "ADR Synthesis"
-  short_description: "Synthesize decisions from notes and ideas"
-
-dependencies:
-  tools:
-    - type: "mcp"
-      value: "datetime-mcp"
-      description: "Provides current date and time"
